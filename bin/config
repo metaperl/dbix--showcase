@@ -1,0 +1,2 @@
+export ROSE_CONF_FILE_ROOT=`pwd`
+
