@@ -1,0 +1,97 @@
+=head1 NAME
+
+Installation instructions
+
+
+=head2 Download the Sakila database 
+
+  cd $DIST/bin
+  ./get-db
+
+
+This will download the Sakila database and fix two typos in the
+schema: L<http://forums.mysql.com/read.php?121,276811,276811#msg-276811>
+
+
+=head2 Install Sakila Database
+
+Before running this step, make sure you have the connection credentials for your database:
+
+=over 4
+
+=item * username
+=item * password
+=item * host
+
+=back
+
+  cd $DIST/bin
+  ./build-db.pl
+
+This script will build a configuration file, F<$DIST/bin/local.conf>
+which will be used by L</Rose::DB::Object> in the subsequent steps. It
+will also print two system commands to STDOUT which you must run to
+build the Sakila database.
+
+For some reason, these commands don't work from within a Perl program.
+
+=head3 mysql client fails from Perl script
+
+For some reason, calling the F<mysql> client program from within Perl
+fails. In this case, you will have to run the two database population
+commands from the command line, as is shown in the transcript below:
+
+  couch@li2-168:~/prg/DBIx-Showcase/bin$ ./build-db.pl
+  Now you will be prompted for the following MySQL credentials:
+  hostname, username, password.
+  
+  These will be written to a file called 'local.conf'
+  and then used to create a database named 'sakila' on the 
+  MySQL server.
+  
+  Hit return to begin. 
+  
+  hostname for MySQL server [localhost]: 
+  username: couch
+  password: honeypot1
+  $VAR1 = {
+            'password' => 'honeypot1',
+            'username' => 'couch',
+            'host' => 'localhost'
+          };
+  
+  mysql --host=localhost --user=couch --password=honeypot1 < tmp/sakila-db/sakila-schema.sql
+  ERROR 1045 (28000): Access denied for user 'couch'@'localhost' (using password: YES)
+
+  mysql --host=localhost --user=couch --password=honeypot1 < tmp/sakila-db/sakila-data.sql
+  ERROR 1045 (28000): Access denied for user 'couch'@'localhost' (using password: YES)
+
+  Now run the above two commands to create and load the sakila database 
+    (it does not run from this script for some reason
+
+  couch@li2-168:~/prg/DBIx-Showcase/bin$ mysql --host=localhost --user=couch \
+      --password=honeypot1 < tmp/sakila-db/sakila-schema.sql
+  couch@li2-168:~/prg/DBIx-Showcase/bin$ mysql --host=localhost \
+      --user=couch --password=honeypot1 < tmp/sakila-db/sakila-data.sql
+
+=head2 Run the ORM Loader scripts
+
+=head3 Point Rose::DB::Object::Loader at the Sakila database
+
+Sourcing the config file, B<then> run F<rdbo-loader:pl>:
+
+  cd $DIST/bin
+  . ./config
+  ./rdbo-loader.pl
+
+
+
+=head2 Now it's time to play!
+
+  cd $DIST/bin
+  ./rdbofaq list_actors
+
+You can call F<rdbofaq> with the name of any .pm file in 
+$DIST/lib/MyApp/Command/*
+
+
